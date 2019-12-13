@@ -10,23 +10,48 @@ class Blockchain {
 
 function Blockchain(){ 
     this.chain = [] // all blocks created
-    this.newTransactions = [] // new transactions that don't form a block yet
+    this.pendingTransactions = [] // new transactions that don't form a block yet
 }
 
-Blockchain.prototype.createNewBlock = function(nonce, previousBlockHash, hash){
-    const newBlock = {
+/**
+* Gets the pending transactions
+* Puts them into a block
+* Pushes the block to the chain
+* Removes all transactions on pending state
+*/
+Blockchain.prototype.createBlock = function(nonce, previousBlockHash, hash){
+    const block = {
         index: this.chain.length + 1,
         timestamp: Date.now(),
-        transactions: this.transactions, // transactions waiting to be placed onto a block
+        transactions: this.pendingTransactions, // transactions waiting to be placed onto a block
         nonce: nonce,
         hash: hash, // hash generated considering the block's transactions as a single string
         previousBlockHash: previousBlockHash,
     }
 
-    this.newTransactions = []
-    this.chain.push(newBlock)
+    this.pendingTransactions = []
+    this.chain.push(block)
 
-    return newBlock
+    return block
 }
 
+Blockchain.prototype.getLastBlock = function(){
+    return this.chain[this.chain.length - 1]
+}
+
+/*
+* Creates a new transaction and pushes it to the pending transactions
+*/
+Blockchain.prototype.createTransaction = function(amount, sender, recipient){
+    const transaction = {
+        amount: amount,
+        sender: sender,
+        recipient: recipient
+    }
+
+    this.pendingTransactions.push(transaction)
+    return this.getLastBlock()['index'] + 1
+}
+
+export default Blockchain
 

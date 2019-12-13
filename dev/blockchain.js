@@ -1,3 +1,5 @@
+import sha256 from "sha256";
+
 /*
 //This also works
 class Blockchain {
@@ -51,6 +53,12 @@ Blockchain.prototype.createTransaction = function(amount, sender, recipient){
 
     this.pendingTransactions.push(transaction)
     return this.getLastBlock()['index'] + 1
+}
+
+Blockchain.prototype.hashBlock = function(previousBlockHash, currentBlockData, nonce){
+    const blockAsText = `${previousBlockHash}${nonce.toString()}${JSON.stringify(currentBlockData)}`
+    const hash = sha256(blockAsText)    
+    return hash
 }
 
 export default Blockchain

@@ -13,6 +13,9 @@ class Blockchain {
 function Blockchain(){ 
     this.chain = [] // all blocks created
     this.pendingTransactions = [] // new transactions that don't form a block yet
+
+    //creating a Genesis Block
+    this.createBlock(42, 'NONE', sha256('genesis_block'))
 }
 
 /**

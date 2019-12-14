@@ -96,6 +96,12 @@ Like: a hash that starts with four zeros.
 
 
 
+A proof of work is supposed to be very difficult to calculate, but once you have the proof/nonce, it's very easy to verify that the nonce is correct, and this means that the block is a valid one.
+
+
+
+
+
 ## How the proof of work makes the blockchain secure?
 
 **First:**
@@ -105,7 +111,7 @@ To find the correct hash, the nonce value will change many times.
 In order to generate the correct hash, it will use a lot of:
 
 * Computing power
-* Runs of hashBlock
+* Runs of `hashBlock`
 * Energy
 * A ton of calculations
 
@@ -120,4 +126,8 @@ The process of creating a hash depends on the old block's hash...
 So: All blocks in the blockchain  are linked by their data.
 
 So: If someone was trying to re-mine or recreate a block that already exists, they will also need to recreate all blocks before the changed block.
+
+-----
+
+
 

@@ -61,20 +61,22 @@ Blockchain.prototype.hashBlock = function(previousBlockHash, currentBlockData, n
     return hash
 }
 
-/**
-*  
-*/
-Blockchain.prototype.proofOfWork = function(){
-    let nonce = 0
-    let hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)    
+Blockchain.prototype.isHashValid = function(hash){
+    return hash.substring(0,4) === '0000'
+}
 
-    while(hash.substring(0,4) != '0000'){
-        nonce += 1;
-        hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)  
-    }
+
+Blockchain.prototype.proofOfWork = function(previousBlockHash, currentBlockData){
+    let hash = 'undefined'
+    let nonce = -1
+
+    do{
+        nonce += 1
+        hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)
+        
+    }while(!this.isHashValid(hash))
 
     return nonce
-
 }
 
 export default Blockchain

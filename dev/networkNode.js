@@ -3,6 +3,8 @@ import bodyParser from 'body-parser'
 import uuid from 'uuid/v1'
 import Blockchain from './blockchain'
 
+const port = process.argv[2]
+
 let app = express()
 const someCoin = new Blockchain()
 const nodeAddress = uuid().split('-').join('')
@@ -44,6 +46,16 @@ app.get('/mine', (req, res) => {
     })
 })
 
-app.listen(5000, ()=>{
-    console.log('Listeing on port 5000...')
+app.get('/', (req, res) => {
+    res.json({
+        message: `someCoin API`,
+        stats:{
+            blocksCreated: someCoin.chain.length,
+            pendingTransactions: someCoin.transactions.length,
+        }
+    })
+})
+
+app.listen(port, ()=>{
+    console.log(`Listeing on port ${port}...`)
 })

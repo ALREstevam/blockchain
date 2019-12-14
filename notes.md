@@ -25,9 +25,7 @@
 
 There is not a single company controlling the blockchain. It's distributed among a lot of people, each one is called a **node**. Each one has the same copy of the ledge.
 
-
-
-# Javascript introduction
+# JavaScript introduction
 
 
 
@@ -65,10 +63,7 @@ User.prototype.getEmailAddress = function(){
 }
 
 user1.getEmailAddress() //this works
-
 ```
-
-
 
 # Nonce
 
@@ -77,8 +72,6 @@ A **nonce** is a number that guarantees the legitimacy of a block.
 A proof that a block was created by a legitimate way.
 
 It can be tested via a proof of  work method.
-
-
 
 # Proof of Work
 
@@ -128,6 +121,28 @@ So: All blocks in the blockchain  are linked by their data.
 So: If someone was trying to re-mine or recreate a block that already exists, they will also need to recreate all blocks before the changed block.
 
 -----
+
+
+
+# Decentralized Network
+
+* All blockchain technology is hosted across a decentralized network
+* Each node will run a instance of a API - Each instance will be a node
+* All nodes will work together to host the blockchain 
+
+
+
+## Secure?
+
+If there is one bad player at the network, trying to cheat the system, each node can refer to the other ones to find how the real data should be and how the blockchain should look like.
+
+## Powerful?
+
+Yon don't have to trust one single entity with all data.
+
+
+
+
 
 
 

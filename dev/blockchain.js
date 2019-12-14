@@ -1,5 +1,7 @@
 import sha256 from "sha256";
 
+const nodeUrl = process.argv[3]
+
 /*
 //This also works
 class Blockchain {
@@ -13,6 +15,9 @@ class Blockchain {
 function Blockchain(){ 
     this.chain = [] // all blocks created
     this.pendingTransactions = [] // new transactions that don't form a block yet
+    this.nodeUrl = nodeUrl
+
+    this.networkNodes = []
 
     //creating a Genesis Block
     this.createBlock(42, 'NONE', sha256('genesis_block'))

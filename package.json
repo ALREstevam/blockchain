@@ -11,8 +11,10 @@
     "babel-loader": "7.1.4",
     "babel-preset-env": "1.5.2",
     "babel-preset-react": "6.24.1",
+    "body-parser": "^1.19.0",
     "express": "^4.17.1",
-    "sha256": "^0.2.0"
+    "sha256": "^0.2.0",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "@babel/core": "^7.7.5",
@@ -23,8 +25,8 @@
     "nodemon": "^2.0.2"
   },
   "scripts": {
-    "startapi": "babel-node ./dev/api.js",
+    "start": "babel-node ./dev/api.js",
     "test": "babel-node ./dev/test.js",
-    "testapi": "nodemon --watch dev -e js --exec yarn startapi"
+    "apidev": "nodemon --watch dev -e js --exec yarn start"
   }
 }

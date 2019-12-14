@@ -1,26 +1,48 @@
 import express from 'express'
+import bodyParser from 'body-parser'
+import uuid from 'uuid/v1'
+import Blockchain from './blockchain'
 
 let app = express()
+const someCoin = new Blockchain()
+const nodeAddress = uuid().split('-').join('')
 
-app.get('/', (req, res) => {
-    res.send('HelloWorld')
-})
+console.log(`The node UUID is ${nodeAddress}`)
 
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: false}))
 
 app.get('/blockchain', (req, res) => {
-    res.send('HelloWorld')
+    res.send(someCoin)
 })
 
 app.post('/transaction', (req, res) => {
-    res.send('HelloWorld')
+    const blockIndex = someCoin.createTransaction(req.body.amount, req.body.sender, req.body.recipient)
+    res.json(
+        {
+            message: `The transaction will be added in block #${blockIndex}`, 
+            blockIndex: blockIndex, 
+        }
+    )
 })
-
 
 app.get('/mine', (req, res) => {
-    res.send('HelloWorld')
+    const lastBlock = someCoin.getLastBlock()
+    const currentBlockData = {
+        transactions: someCoin.pendingTransactions,
+        index: lastBlock.index + 1
+    }
+    const nonce = someCoin.proofOfWork(lastBlock.hash, currentBlockData)
+    const blockHash = someCoin.hashBlock(lastBlock.hash, currentBlockData, nonce)
+
+    someCoin.createTransaction(1, "00", nodeAddress) // 00 => SENDER is mining reward
+    const block = someCoin.createBlock(nonce, lastBlock.hash, blockHash);
+
+    res.json({
+        message: `A new block was mined sucessfully`,
+        block: block,
+    })
 })
-
-
 
 app.listen(5000, ()=>{
     console.log('Listeing on port 5000...')

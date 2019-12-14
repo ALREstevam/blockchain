@@ -80,5 +80,44 @@ It can be tested via a proof of  work method.
 
 
 
+# Proof of Work
 
+A blockchain is a list of blocks, every block must be created and added to the chain
+
+**BUT**
+
+we don't want any block to be created and added to the chain, we need to be sure that every new block is legitimate and have the correct transactions (data), otherwise people can cause fraud.
+
+A proof of work is a function that receives the current block data and tries to  find a specific hash.
+
+Like: a hash that starts with four zeros.
+
+**How**: by trial and error, changing the nonce value until the condition happens
+
+
+
+## How the proof of work makes the blockchain secure?
+
+**First:**
+
+To find the correct hash, the nonce value will change many times. 
+
+In order to generate the correct hash, it will use a lot of:
+
+* Computing power
+* Runs of hashBlock
+* Energy
+* A ton of calculations
+
+Trying to recreate or re-mine a already existing block with fake data it not feasible.
+
+
+
+ **Second**
+
+The process of creating a hash depends on the old block's hash...
+
+So: All blocks in the blockchain  are linked by their data.
+
+So: If someone was trying to re-mine or recreate a block that already exists, they will also need to recreate all blocks before the changed block.
 

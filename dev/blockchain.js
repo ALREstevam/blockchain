@@ -1,4 +1,5 @@
 import sha256 from "sha256";
+import {getUuid} from './common'
 
 const nodeUrl = process.argv[3]
 
@@ -37,10 +38,8 @@ Blockchain.prototype.createBlock = function(nonce, previousBlockHash, hash){
         hash: hash, // hash generated considering the block's transactions as a single string
         previousBlockHash: previousBlockHash,
     }
-
     this.pendingTransactions = []
     this.chain.push(block)
-
     return block
 }
 
@@ -52,14 +51,17 @@ Blockchain.prototype.getLastBlock = function(){
 * Creates a new transaction and pushes it to the pending transactions
 */
 Blockchain.prototype.createTransaction = function(amount, sender, recipient){
-    const transaction = {
+    return {
         amount: amount,
         sender: sender,
-        recipient: recipient
+        recipient: recipient,
+        transactionId: `TID${getUuid()}`,
     }
+}
 
+Blockchain.prototype.addPendingTransaction = function(transaction){
     this.pendingTransactions.push(transaction)
-    return this.getLastBlock()['index'] + 1
+    return this.getLastBlock().index + 1
 }
 
 Blockchain.prototype.hashBlock = function(previousBlockHash, currentBlockData, nonce){

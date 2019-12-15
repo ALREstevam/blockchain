@@ -28,9 +28,9 @@
     "nodemon": "^2.0.2"
   },
   "scripts": {
-    "start": "babel-node ./dev/networkNode.js",
+    "start": "babel-node ./dev/api.js",
     "test": "babel-node ./dev/test.js",
-    "apidev": "nodemon --watch dev -e js --exec yarn start 5000 http://localhost:5000",
+    "dev": "nodemon --watch dev -e js --exec yarn start 5000 http://localhost:5000",
     "node1": "nodemon --watch dev -e js --exec yarn start -- 5001 http://localhost:5001",
     "node2": "nodemon --watch dev -e js --exec yarn start 5002 http://localhost:5002",
     "node3": "nodemon --watch dev -e js --exec yarn start 5003 http://localhost:5003",

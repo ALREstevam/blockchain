@@ -7,21 +7,30 @@ import { oneLine } from 'common-tags'
 
 const port = process.argv[2]
 
-let app = express()
-const someCoin = new Blockchain()
-const nodeUUID = uuid().split('-').join('')
-
-console.log(`The node UUID is ${nodeUUID}`)
-
 function setHasOnly(set, element){
     return set.size === 1 && set.has(element)
 }
+
+function getUuid(){
+    return uuid().split('-').join('')
+}
+
+let app = express()
+const someCoin = new Blockchain()
+const nodeUUID = getUuid()
+console.log(`The node UUID is ${nodeUUID}`)
+
+
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
     extended: false
 }))
 
+
+/**
+ * Default endpoint, returns some basic information about the node
+ */
 app.get('/', (req, res) => {
     res.json({
         message: `someCoin API`,
@@ -32,10 +41,16 @@ app.get('/', (req, res) => {
     })
 })
 
+/**
+ * Returns the entire blockchain stored by the node
+ */
 app.get('/blockchain', (req, res) => {
     res.send(someCoin)
 })
 
+/**
+ * Adds a transaction on the node
+*/
 app.post('/transaction', (req, res) => {
     const blockIndex = someCoin.createTransaction(req.body.amount, req.body.sender, req.body.recipient)
     res.json({
@@ -44,6 +59,9 @@ app.post('/transaction', (req, res) => {
     })
 })
 
+/**
+ * Mines a new coin and adds the pending transactions to a new block
+ */
 app.get('/mine', (req, res) => {
     const lastBlock = someCoin.getLastBlock()
     const currentBlockData = {
@@ -57,13 +75,15 @@ app.get('/mine', (req, res) => {
     const block = someCoin.createBlock(nonce, lastBlock.hash, blockHash);
 
     res.json({
-        message: `A new block was mined sucessfully`,
+        message: `A new block was mined successfully`,
         block: block,
     })
 })
 
 
-
+/**
+ * Returns the friend nodes of this node
+ */
 app.get('/nodes', (req, res) => {
     res.json({
         connectedToNodes: someCoin.networkNodes,
@@ -100,7 +120,7 @@ app.post('/nodes/broadcast', (req, res) => {
         }).then(() => {
             someCoin.networkNodes.add(newNodeUrl)
             res.json({
-                message: "The node was registered within the network sucessfully"
+                message: "The node was registered within the network successfully"
             })
         }).catch((err)=>{
             res.status(500)
@@ -133,27 +153,30 @@ app.post('/nodes/broadcast', (req, res) => {
 
 /**
  * Registers a node onto the network
- * This endpoint should be called from a node that received a requet to
+ * This endpoint should be called from a node that received a request to
  * add a new node to the network, broadcasting its address to the remaining nodes 
- * by calling on this endpoint, so there will not be infinit broadcast calls 
+ * by calling on this endpoint, so there will not be infinity broadcast calls 
  */
 app.post('/nodes/add', (req, res) => {
     const newNodeUrl = req.body.node.url
     console.log('Receiving a broadcast...')
     if (newNodeUrl === someCoin.nodeUrl) {
         res.json({
-            message: oneLine`The broadcasted node was sucessfully received, 
+            message: oneLine`The broadcasted node was successfully received, 
             but it will not be saved since the address is the same of the receiver node`
         })
     } else {
         someCoin.networkNodes.add(newNodeUrl)
         res.json({
-            message: "The broadcasted node was sucessfully regitered"
+            message: "The broadcasted node was successfully registered"
         })
     }
 })
 
-
+/**
+ * For manual use / tests purpose only, this should be used when you know a address of another node,
+ * and wants to connect it to your 
+ */
 app.post('/nodes/reflective-add', (req,res)=>{
     const newNodeUrl = req.body.node.url
     
@@ -200,11 +223,11 @@ app.post('/nodes/bulk', (req, res) => {
     });
 
     res.json({
-        message: `Bulk registration was sucessful`
+        message: `Bulk registration was successfully`
     })
 })
 
 
 app.listen(port, () => {
-    console.log(`Listeing on port ${port}...`)
+    console.log(`Listening on port ${port}...`)
 })

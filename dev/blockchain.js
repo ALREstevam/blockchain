@@ -16,8 +16,7 @@ function Blockchain(){
     this.chain = [] // all blocks created
     this.pendingTransactions = [] // new transactions that don't form a block yet
     this.nodeUrl = nodeUrl
-
-    this.networkNodes = []
+    this.networkNodes = new Set()
 
     //creating a Genesis Block
     this.createBlock(42, 'NONE', sha256('genesis_block'))
@@ -65,7 +64,7 @@ Blockchain.prototype.createTransaction = function(amount, sender, recipient){
 
 Blockchain.prototype.hashBlock = function(previousBlockHash, currentBlockData, nonce){
     const blockAsText = `${previousBlockHash}${nonce.toString()}${JSON.stringify(currentBlockData)}`
-    const hash = sha256(blockAsText)    
+    const hash = sha256(blockAsText)
     return hash
 }
 

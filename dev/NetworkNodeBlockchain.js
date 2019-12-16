@@ -9,13 +9,25 @@ class NetworkNodeBlockchain extends Blockchain{
         this.UUID = getUuid()
     }
 
-    broadcastPost(endpoint, message, receivers=[...this.networkNodes]){
+    broadcast(endpoint, message, receivers=[...this.networkNodes]){
         return receivers.map((url)=>{
             return request.post({
                 uri: `${url}${endpoint}`,
                 body: message,
                 json: true,
             })
+        })
+    }
+
+    receiveMiningReward(amount){
+        return request.post({
+            uri: `${this.nodeUrl}/broadcast/transaction`,
+            body: {
+                amount: amount,
+                sender: "00",// 00 => SENDER is mining reward
+                recipient: this.UUID,
+            },
+            json: true,
         })
     }
 }

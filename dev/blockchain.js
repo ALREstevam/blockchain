@@ -51,11 +51,11 @@ Blockchain.prototype.getLastBlock = function(){
 * Creates a new transaction and pushes it to the pending transactions
 */
 Blockchain.prototype.createTransaction = function(amount, sender, recipient){
-    return {
+    return { 
         amount: amount,
         sender: sender,
         recipient: recipient,
-        transactionId: `TID${getUuid()}`,
+        transactionId: `TID-${getUuid()}`,
     }
 }
 
@@ -78,13 +78,10 @@ Blockchain.prototype.isHashValid = function(hash){
 Blockchain.prototype.proofOfWork = function(previousBlockHash, currentBlockData){
     let hash = 'undefined'
     let nonce = -1
-
     do{
         nonce += 1
         hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)
-        
     }while(!this.isHashValid(hash))
-
     return nonce
 }
 

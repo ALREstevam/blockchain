@@ -54,12 +54,12 @@ app.post('/transaction', (req, res) => {
 /**
  * Adds a new transaction and broadcasts it to the network
  */
-app.post('/broadcast/transaction/', (req, res)=>{
+app.post('/broadcast/transaction', (req, res)=>{
     const transaction = someCoin.createTransaction(req.body.amount, req.body.sender, req.body.recipient)
     const blockIndex = someCoin.addPendingTransaction(transaction)
 
     Promise.all(
-        someCoin.broadcastPost('/transaction', transaction)
+        someCoin.broadcast('/transaction', transaction)
     ).then((response)=>{
         res.json({
             message: oneLine`Transaction created and broadcasted successfully. 
@@ -80,18 +80,45 @@ app.post('/broadcast/transaction/', (req, res)=>{
 
 })
 
-
-
+/**
+ * 1. The previous block hash is the same as mine?
+ * 2. The new blok has the correct index?
+ */
 app.post('/block', (req, res)=> {
+    console.log('Request to add a new block received')
+    const minedBlock = req.body.block
+    const lastBlock = someCoin.getLastBlock()
 
+    if(lastBlock.hash === minedBlock.previousBlockHash &&
+    lastBlock.index + 1 === minedBlock.index){
+        console.log('ACCEPTED')
+
+        someCoin.chain.push(minedBlock)
+        someCoin.pendingTransactions = []
+        res.json({
+            message: 'New block received and accepted',
+            status: 'ACCEPTED',
+            newBlock: minedBlock,
+        })
+    }else{
+        console.log('REJECTED')
+
+        res.json({
+            message: 'New block was received but rejected',
+            status: 'REJECTED',
+            newBlock: minedBlock,
+        })
+    }
 })
 
-
-
 /**
- * Mines a new coin and adds the pending transactions to a new block
+ * Mines a new coin, adds the pending transactions to a new block and
+ * broadcasts the new block to the network
  */
 app.get('/mine', (req, res) => {
+
+    console.log('== MINING ==')
+
     const lastBlock = someCoin.getLastBlock()
     const currentBlockData = {
         transactions: someCoin.pendingTransactions,
@@ -99,16 +126,33 @@ app.get('/mine', (req, res) => {
     }
     const nonce = someCoin.proofOfWork(lastBlock.hash, currentBlockData)
     const blockHash = someCoin.hashBlock(lastBlock.hash, currentBlockData, nonce)
-
-    someCoin.createTransaction(1, "00", nodeUUID) // 00 => SENDER is mining reward
-
     const block = someCoin.createBlock(nonce, lastBlock.hash, blockHash);
 
-    
-    res.json({
-        message: `A new block was mined successfully`,
-        block: block,
+    console.log('Mined')
+
+    Promise.all(someCoin.broadcast('/block', {
+        block: block
+    })).then((response)=>{
+        console.log('Sending to the network...')
+        response.map(el => el.status).forEach((el)=>{console.log(`* ${el}`)})
+        return someCoin.receiveMiningReward(1)
+    }).then((response)=>{
+        res.json({
+            message: `A new block was mined and broadcasted successfully`,
+            block: block,
+        })
+    }).catch((err)=>{
+        res.status(500)
+        res.json({
+            message: 'A unknown error happened',
+            error:{
+                code: 0,
+                name: 'UNKNOWN_ERROR',
+                errorDump: err,
+            }
+        })
     })
+    //someCoin.createTransaction(1, "00", nodeUUID) 
 })
 
 
@@ -140,7 +184,6 @@ app.post('/broadcast/nodes', (req, res) => {
     }
     else if(someCoin.networkNodes.size === 0 || setHasOnly(someCoin.networkNodes, newNodeUrl)){
         someCoin.networkNodes.add(newNodeUrl)
-        res.status(500)
         res.json({
             message: oneLine`This node has no friends :'(, 
                 but you were added as the first. Please try other nodes`,
@@ -151,7 +194,7 @@ app.post('/broadcast/nodes', (req, res) => {
         })
     }
     else{
-        const registerNodesPromises = someCoin.broadcastPost(
+        const registerNodesPromises = someCoin.broadcast(
             '/nodes/add', 
             {node: {url: newNodeUrl}, senderUrl: someCoin.nodeUrl},
             [...someCoin.networkNodes].filter((url)=>{return url != someCoin.nodeUrl && url != newNodeUrl}))

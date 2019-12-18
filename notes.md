@@ -140,7 +140,23 @@ If there is one bad player at the network, trying to cheat the system, each node
 
 Yon don't have to trust one single entity with all data.
 
+# Consensus algorithm
 
+* There are many
+
+## Longest Chain Rule
+
+1. Find the node with the longest chain
+2. Replace the chain in the chosen node for the longest chain in the network
+
+
+
+**Because**:
+
+* The longest chain in  the network is probably the more trustable one because more effort was put to build it.
+* More blocks were mining using the proof of work
+* Therefore... it can be concluded that the hole network contributed to the longest chain construction - a lot of effort was put into building it
+* 
 
 
 

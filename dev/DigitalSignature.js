@@ -50,18 +50,10 @@ export default class DigitalSignature {
         signer.end()
         const signature = signer.sign(privateKey, "base64")
 
-        console.log('CREATING SIGNATURE')
-        console.log(`Data: ${text}`)
-        console.log(`Signature: ${signature}`)
-        console.log(privateKey)
-
-
         return signature
     }
 
     doVerify(signedData, publicKey, signature){
-        console.log('signature ' + signature)
-        
         if(!signature){
             signature = this.signatureExtractor(signedData)
         }
@@ -71,14 +63,6 @@ export default class DigitalSignature {
         verifier.update(text)
         verifier.end()
         const verified = verifier.verify(publicKey, signature, "base64")
-
-        console.log('VERIFYING SIGNATURE')
-        console.log(`Data: ${text}`)
-        console.log(`Signature: ${signature}`)
-        console.log(publicKey)
-        console.log(`Result: ${verified}`)
-
-
 
         return verified
     }

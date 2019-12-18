@@ -44,7 +44,16 @@ app.get('/blockchain', (req, res) => {
  */
 app.post('/transaction', (req, res) => {
     console.log('Receiving a broadcast with a transaction')
-    const transaction = req.body
+    const transaction = req.body.transaction
+
+    if (!someCoin.verifySignature(transaction, req.body.publicKey)){
+        res.status(500)
+        res.json({
+            message: "Invalid signature, transaction refused",
+        })
+        return
+    }
+
     const blockIndex = someCoin.addPendingTransaction(transaction)
     res.json({
         message: `The transaction will be added in block #${blockIndex}`,
@@ -64,19 +73,22 @@ app.post('/broadcast/transaction', (req, res) => {
         req.body.transaction.signature
     )
 
-
     if (!someCoin.verifySignature(transaction, req.body.publicKey)){
+        res.status(500)
         res.json({
             message: "Invalid signature, transaction refused",
         })
         return
     }
-    
 
     const blockIndex = someCoin.addPendingTransaction(transaction)
 
+
     Promise.all(
-        someCoin.broadcast('/transaction', [...someCoin.networkNodes], transaction).post()
+        someCoin.broadcast('/transaction', [...someCoin.networkNodes], {
+            transaction: transaction,
+            publicKey: req.body.publicKey
+        }).post()
     ).then((response) => {
         res.json({
             message: oneLine `Transaction created and broadcasted successfully. 

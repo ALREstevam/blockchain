@@ -21,17 +21,11 @@ class NetworkNodeBlockchain extends Blockchain {
     }
 
     signature(privateKey, transaction){
-        console.log('SIGNING')
         return this.signer.doSign(transaction, privateKey)
     }
 
     verifySignature(signedTransaction, publicKey){
-        console.log('VERIFY')
-        console.log('pseudonym: ', this.pseudonym(publicKey),  signedTransaction.sender)
-
-
-
-        return (this.pseudonym(publicKey) === signedTransaction.sender) && 
+        return (signedTransaction.sender === '00' || this.pseudonym(publicKey) === signedTransaction.sender) && 
         this.signer.doVerify(signedTransaction, publicKey)
     }
 
@@ -57,13 +51,25 @@ class NetworkNodeBlockchain extends Blockchain {
         }
     }
 
-    receiveMiningReward(amount) {
+    receiveMiningReward(amount, coinReceiver) {
+
+        const pair = this.signer.generateKeyPairSync()
+
+        let transaction = {
+            amount: amount,
+            sender: "00", // 00 => SENDER is mining reward
+            recipient: coinReceiver,
+        }
+
+        const signature = this.signer.doSign(transaction, pair.privateKey)
+
+        transaction.signature = signature
+
         return request.post({
             uri: `${this.nodeUrl}/broadcast/transaction`,
             body: {
-                amount: amount,
-                sender: "00", // 00 => SENDER is mining reward
-                recipient: this.UUID,
+                transaction: transaction,
+                publicKey: pair.publicKey,
             },
             json: true,
         })

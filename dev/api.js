@@ -142,12 +142,14 @@ app.post('/block', (req, res) => {
 })
 
 /**
- * Mines a new coin, adds the pending transactions to a new block and
+ * Mines a new block, adds the pending transactions to a new block and
  * broadcasts the new block to the network
  */
-app.get('/mine', (req, res) => {
+app.get('/mine/:coinReceiver', (req, res) => {
 
     console.log('== MINING ==')
+
+    const coinReceiver = req.params.coinReceiver
 
     const lastBlock = someCoin.getLastBlock()
     const currentBlockData = someCoin.generateNextBlockData()
@@ -171,7 +173,7 @@ app.get('/mine', (req, res) => {
         response.map(el => el.status).forEach((el) => {
             console.log(`* ${el}`)
         })
-        return someCoin.receiveMiningReward(1)
+        return someCoin.receiveMiningReward(1, coinReceiver)
     }).then((response) => {
         res.json({
             message: `A new block was mined and broadcasted successfully`,
@@ -435,6 +437,12 @@ app.get('/user', (req, res)=>{
             },
             pseudonym: someCoin.pseudonym(publicKey),
         })
+    })
+})
+
+app.get('/pseudonym', (req, res)=>{
+    res.json({
+        pseudonym: someCoin.pseudonym(req.body.publicKey),
     })
 })
 

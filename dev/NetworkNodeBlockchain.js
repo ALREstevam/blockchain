@@ -25,12 +25,34 @@ class NetworkNodeBlockchain extends Blockchain {
     }
 
     verifySignature(signedTransaction, publicKey){
+        //console.log(this.pseudonym(publicKey), signedTransaction.sender)
         return (signedTransaction.sender === '00' || this.pseudonym(publicKey) === signedTransaction.sender) && 
         this.signer.doVerify(signedTransaction, publicKey)
     }
 
     pseudonym(publicKey){
-        return 'PSEUDONYM-' + sha256(publicKey).toUpperCase().substring(5,15)
+        const hash = sha256(publicKey)
+
+        const name = {
+            "0": "ASPEN", 
+            "1":"ELM", 
+            "2": "PINE", 
+            "3":"MAPLE",
+            "4": "JELLY", 
+            "5": "POCKY", 
+            "6": "DUMLE",
+            "7": "MARIOLA", 
+            "8": "DOLPHIN", 
+            "9": "MEERKATS", 
+            "A": "GRID",
+            "B": "RAVEN", 
+            "C": "PASSER", 
+            "D": "SPRING", 
+            "E": "WAGON", 
+            "F": "CANDLE" 
+        }
+        
+        return `PSE-${name[hash.charAt(0).toUpperCase()]}-${name[hash.charAt(1).toUpperCase()]}-${hash.toUpperCase().substring(0,15)}`
     }
 
     broadcast(endpoint, receivers = [...this.networkNodes], message) {
@@ -52,9 +74,7 @@ class NetworkNodeBlockchain extends Blockchain {
     }
 
     receiveMiningReward(amount, coinReceiver) {
-
         const pair = this.signer.generateKeyPairSync()
-
         let transaction = {
             amount: amount,
             sender: "00", // 00 => SENDER is mining reward

@@ -6,6 +6,8 @@ import {oneLine} from 'common-tags'
 import {setHasOnly,findIndex} from './common'
 import NetworkNodeBlockchain from './NetworkNodeBlockchain'
 import sha256 from "sha256";
+import SimpleLog from './SimpleLog'
+
 
 const port = process.argv[2]
 
@@ -18,6 +20,34 @@ app.use(bodyParser.urlencoded({
     extended: false
 }))
 
+
+const log = new SimpleLog(someCoin.nodeUrl.replace('http://', ''))
+log.addPrinter('mining', '⛏️')
+log.addPrinter('fiends', '🤝')
+log.addPrinter('signature', '🔑')
+log.addPrinter('signature', '🔑')
+
+function printTransaction(sender, recipient, amount, signature){
+    console.log()
+    console.log('==== ADDING A NEW PENDING TRANSACTION TO THE BLOCKCHAIN ====')
+    console.log(`"${sender}" ----(${amount} coins)----> "${recipient}"`)
+    console.log(`TRANSACTION SIGNATURE: ${signature}`)
+    console.log('============================================================')
+    console.log()
+}
+
+function printBlock(block){
+    console.log()
+    console.log('==== ADDING A NEW BLOCK TO THE BLOCKCHAIN ====')
+    console.log(`BLOCK #${block.index}`)
+    console.log(`CREATED: ${new Date(block.timestamp).toUTCString()}`)
+    console.log(`TRANSACTIONS: ${block.transactions.length || 0}`)
+    console.log(`NONCE: ${block.nonce}`)
+    console.log(`HASH: ${block.hash}`)
+    console.log(`PREVIOUS HASH: ${block.previousBlockHash}`)
+    console.log('==============================================')
+    console.log()
+}
 
 /**
  * Default endpoint, returns some basic information about the node
@@ -43,10 +73,12 @@ app.get('/blockchain', (req, res) => {
  * Adds a transaction on the node
  */
 app.post('/transaction', (req, res) => {
-    console.log('Receiving a broadcast with a transaction')
+    log.print('Receiving a broadcast with a transaction')
     const transaction = req.body.transaction
 
+    log.printer.signature('VERIFYING DIGITAL SIGNATURE')
     if (!someCoin.verifySignature(transaction, req.body.publicKey)){
+        log.cross('Invalid signature')
         res.status(500)
         res.json({
             message: "Invalid signature, transaction refused",
@@ -55,11 +87,15 @@ app.post('/transaction', (req, res) => {
     }
 
     const blockIndex = someCoin.addPendingTransaction(transaction)
+    log.check('Signature matched')
+    printTransaction(transaction.sender, transaction.recipient, transaction.signature)
     res.json({
         message: `The transaction will be added in block #${blockIndex}`,
         blockIndex: blockIndex,
     })
 })
+
+
 
 /**
  * Adds a new transaction and broadcasts it to the network
@@ -73,7 +109,9 @@ app.post('/broadcast/transaction', (req, res) => {
         req.body.transaction.signature
     )
 
+    log.printer.signature('VERIFYING DIGITAL SIGNATURE')
     if (!someCoin.verifySignature(transaction, req.body.publicKey)){
+        log.cross('Invalid signature')
         res.status(500)
         res.json({
             message: "Invalid signature, transaction refused",
@@ -83,6 +121,7 @@ app.post('/broadcast/transaction', (req, res) => {
 
     const blockIndex = someCoin.addPendingTransaction(transaction)
 
+    log.check('Valid signature, broadcasting transaction to the entire network')
 
     Promise.all(
         someCoin.broadcast('/transaction', [...someCoin.networkNodes], {
@@ -90,6 +129,9 @@ app.post('/broadcast/transaction', (req, res) => {
             publicKey: req.body.publicKey
         }).post()
     ).then((response) => {
+
+        printTransaction(transaction.sender, transaction.recipient, transaction.amount, transaction.signature)
+
         res.json({
             message: oneLine `Transaction created and broadcasted successfully. 
                 It will be added in block #${blockIndex}`,
@@ -115,13 +157,15 @@ app.post('/broadcast/transaction', (req, res) => {
  * 2. The new blok has the correct index?
  */
 app.post('/block', (req, res) => {
-    console.log('Request to add a new block received')
+    log.print('Request to add a new block received')
     const minedBlock = req.body.block
     const lastBlock = someCoin.getLastBlock()
 
     if (lastBlock.hash === minedBlock.previousBlockHash &&
         lastBlock.index + 1 === minedBlock.index) {
-        console.log('ACCEPTED')
+        log.check('ACCEPTED')
+
+        printBlock(minedBlock)
 
         someCoin.chain.push(minedBlock)
         someCoin.pendingTransactions = []
@@ -131,7 +175,7 @@ app.post('/block', (req, res) => {
             newBlock: minedBlock,
         })
     } else {
-        console.log('REJECTED')
+        log.cross('REJECTED')
 
         res.json({
             message: 'New block was received but rejected',
@@ -147,7 +191,7 @@ app.post('/block', (req, res) => {
  */
 app.get('/mine/:coinReceiver', (req, res) => {
 
-    console.log('== MINING ==')
+    log.printer.mining('MINING...')
 
     const coinReceiver = req.params.coinReceiver
 
@@ -162,19 +206,22 @@ app.get('/mine/:coinReceiver', (req, res) => {
     const blockHash = someCoin.hashBlock(lastBlock.hash, currentBlockData, nonce)
     const block = someCoin.createBlock(nonce, lastBlock.hash, blockHash);
 
-    console.log('Mined')
+    log.check('mined')
 
     Promise.all(
         someCoin.broadcast('/block', [...someCoin.networkNodes], {
             block: block
         }).post()
     ).then((response) => {
-        console.log('Sending to the network...')
+        log.print('Sending to the network...')
         response.map(el => el.status).forEach((el) => {
-            console.log(`* ${el}`)
+            log.print(`* ${el}`)
         })
         return someCoin.receiveMiningReward(1, coinReceiver)
     }).then((response) => {
+
+        printBlock(block)
+
         res.json({
             message: `A new block was mined and broadcasted successfully`,
             block: block,
@@ -195,6 +242,7 @@ app.get('/mine/:coinReceiver', (req, res) => {
 
 
 app.get('/consensus', (req, res) => {
+
     Promise.all(someCoin.broadcast('/blockchain').get())
         .then(blockchains => {
             let maxLengthBlockchain = undefined
@@ -312,7 +360,7 @@ app.post('/nodes/add', (req, res) => {
 
     let successMessages = []
 
-    console.log('Making a new friend')
+    log.printer.friends('Making a new friend')
 
     if (newNodeUrl === someCoin.nodeUrl) {
         res.status(500)
@@ -458,5 +506,5 @@ app.post('/sign', (req, res)=>{
 
 
 app.listen(port, () => {
-    console.log(`Listening on port ${port}...`)
+    log.check(`Listening on port ${port}...`)
 })

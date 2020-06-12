@@ -1,14 +1,18 @@
 # Blockchain
 
-This repository contains some studies in blockchain that i created based on a Udemy course. It's a **toy example** of how a real blockchain would work.
+This repository contains some studies in blockchain that i created based on a Udemy course. It's a **toy example** of how a blockchain would work.
 
 
-# Main differences from what is shown in the course
+
+I decided to change some points from what is shown in the course:
+
+
+
 This project :
 * Uses `yarn` instead of `npm`
-* Uses the babel transpiler
-* Applies digital signature to do transactions
-* Has no UI
+* Uses the babel transpiler, so I can use the latest JavasScript version.
+* Applies digital signature to do transactions (the course didn't addressed this point :( so anyone could send a transaction from anyone else to themselves)
+* Has no UI (the course just gave the UI ready to use, not explaining how is it done, due to incompatibilities I decided to not implement an UI just now)
 
 # Setup
 
@@ -34,57 +38,64 @@ nodemon --watch dev -e js --exec yarn start <port> <node address>
 
 **Creating a network**
 
-```
-POST http://localhost:5001/broadcast/nodes
+This will add `http://localhost:5002` to the known nodes
 
-SENDING
+```javascript
+//[POST] http://localhost:5001/broadcast/nodes
+
+// SENDING
 {
 	url: "http://localhost:5002" // :5003 :5004 :5005
 }
 ```
 
-
-
-**Creating  a new transaction**
-
-Getting the credentials
+**Getting the credentials**
 
 ```
-GET http://localhost:5001/user
+[GET] http://localhost:5001/user
+```
 
-TO GET
+You will get
 * A public key
 * A private key
 * Pseudonym
-```
 
-Signing the transaction
+Keep the private key safe and don't share it with anyone.
 
-```
-POST http://localhost:5001/sign
+The public key will be used to check signed transactions and the pseudonym is a random name that identifies accounts, something like `PSE-DUMLE-DOLPHIN-689DD726702ED04`.
 
-SENDING
+**Signing transactions**
+
+```javascript
+// POST http://localhost:5001/sign
+
+// Body:
 
 {
 	transaction: {
-		sender: "",
-		recipient: "",
+		sender: "<sender's pseudonym>",
+		recipient: "<recipient's pseudonym>",
 		amount: 0,
 	},
-	publicKey: ""
+	privateKey: "-----BEGIN PRIVATE KEY-----...=\n-----END PRIVATE KEY-----"
 }
-
-TO RECEIVE the signature
 ```
 
-Sending the transaction
+Your private key should be sent only to your private node. The node will respond with a signature for this transaction.
 
-```
-POST http://localhost:5001/broadcast/transaction
+**Broadcasting the transaction**
+
+Now that you have the signature, you can broadcast the transaction to the other nodes, the content on `transaction:{ ... }` should be the same as before. Remove the field `privateKey` and add `publicKey`, with a string containing your public key and then add another field called `signature`, this should contain the signature that you just received.
+
+```javascript
+// POST http://localhost:5001/broadcast/transaction
+
+//Body:
+
 {
 	transaction: {
-		sender: "",
-		recipient: "",
+		sender: "<sender's pseudonym>",
+		recipient: "<recipient's pseudonym>",
 		amount: 0,
 	},
 	publicKey: "",
@@ -92,12 +103,16 @@ POST http://localhost:5001/broadcast/transaction
 }
 ```
 
+Your node will broadcast the message to the known nodes, they will check the signature and add the transaction to their own chain if they reach a consensus.
+
 
 
 **Mining a new block and receiving a mining reward**
 
-```
-GET http://localhost:5001/mine/<pseudonym>
+When you mine a new block, a transaction will be automatically added, crediting you with some coins.
+
+```shell
+[GET] http://localhost:5001/mine/<pseudonym>
 ```
 
 
@@ -184,7 +199,7 @@ Recovers the user's pseudonym giving the public key
 
 ```javascript
 {
-    "pseudonym":"string"
+    "pseudonym":"..."
 }
 ```
 
